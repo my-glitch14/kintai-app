@@ -218,6 +218,21 @@ export default function App() {
   const [newPw, setNewPw] = useState("");
   const [newEmp, setNewEmp] = useState({ empNo:"", password:"", name:"", dept:"", annualLeave:10 });
   const [addError, setAddError] = useState("");
+  const [filterDept, setFilterDept] = useState("すべて");
+
+  const allDepts = ["すべて", ...Array.from(new Set(employees.map(e => e.dept)))];
+  const filterEmployees = list => filterDept === "すべて" ? list : list.filter(e => e.dept === filterDept);
+
+  const DeptFilter = () => (
+    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
+      <span style={{fontSize:"13px",color:"#64748b",fontWeight:"600"}}>部署：</span>
+      {allDepts.map(d => (
+        <button key={d} onClick={()=>setFilterDept(d)} style={{padding:"4px 14px",borderRadius:"9999px",fontSize:"12px",fontWeight:"600",cursor:"pointer",border:"none",background:filterDept===d?"#2563eb":"#e5e7eb",color:filterDept===d?"white":"#374151"}}>
+          {d}
+        </button>
+      ))}
+    </div>
+  );
 
   const updateEmployees = newEmps => { setEmployees(newEmps); saveEmployees(newEmps); };
 
