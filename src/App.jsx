@@ -79,6 +79,9 @@ function calcLeaveStats(emp, leaves) {
   return { usedCount, totalGranted, remaining: totalGranted - usedCount };
 }
 
+const cell = (extra = {}) => ({ padding: "12px 16px", color: "#1f2937", ...extra });
+const th = { textAlign: "left", padding: "12px 16px", color: "#64748b", fontWeight: "600", background: "#f8fafc" };
+
 // ─── Login ───────────────────────────────────────────────────────
 function LoginScreen({ employees, onLogin }) {
   const [empNo, setEmpNo] = useState("");
@@ -128,7 +131,7 @@ function LoginScreen({ employees, onLogin }) {
   );
 }
 
-// ─── Leave Detail ─────────────────────────────────────────────────
+// ─── Leave Detail ────────────────────────────────────────────────
 function LeaveDetailPanel({ emp, leaves }) {
   const { usedCount, remaining } = calcLeaveStats(emp, leaves);
   const nextGrant = emp.pendingGrant;
@@ -136,7 +139,7 @@ function LeaveDetailPanel({ emp, leaves }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
       <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-        <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>🎁 次回有給付与</h3>
+        <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>🎁 次回有給付与</h3>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#eff6ff",borderRadius:"12px",padding:"16px 20px"}}>
           <div>
             <p style={{fontSize:"12px",color:"#3b82f6",fontWeight:"600",margin:"0 0 4px"}}>付与予定日</p>
@@ -149,42 +152,38 @@ function LeaveDetailPanel({ emp, leaves }) {
         </div>
       </div>
       <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-        <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>📋 有給付与・消失スケジュール</h3>
-        <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-          {emp.leaveGrants.map((g, i) => {
-            const dLeft = daysDiff(g.expiryDate);
-            const isExpired = dLeft < 0, isUrgent = !isExpired && dLeft <= 60, isWarning = !isExpired && dLeft <= 180 && dLeft > 60;
-            const border = isExpired?"#e5e7eb":isUrgent?"#fca5a5":isWarning?"#fde047":"#86efac";
-            const bg = isExpired?"#f9fafb":isUrgent?"#fef2f2":isWarning?"#fffbeb":"#f0fdf4";
-            const textColor = isExpired?"#9ca3af":isUrgent?"#dc2626":isWarning?"#ca8a04":"#16a34a";
-            return (
-              <div key={i} style={{borderRadius:"12px",border:`2px solid ${border}`,background:bg,padding:"16px",opacity:isExpired?0.6:1}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                  <div>
-                    <p style={{fontSize:"12px",color:"#6b7280",margin:"0 0 2px"}}>付与日：{fmt(g.grantDate)}</p>
-                    <p style={{fontSize:"14px",fontWeight:"bold",color:"#1f2937",margin:0}}>付与日数：{g.days}日</p>
-                  </div>
-                  <div style={{textAlign:"right"}}>
-                    <p style={{fontSize:"12px",color:textColor,margin:"0 0 2px"}}>消失期限：{fmt(g.expiryDate)}</p>
-                    {isExpired
-                      ? <span style={{fontSize:"12px",background:"#e5e7eb",color:"#6b7280",padding:"2px 8px",borderRadius:"9999px"}}>消失済み</span>
-                      : <p style={{fontSize:"18px",fontWeight:"bold",color:textColor,margin:0}}>あと {dLeft} 日 {isUrgent&&"⚠️"}</p>}
-                  </div>
+        <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>📋 有給付与・消失スケジュール</h3>
+        {emp.leaveGrants.map((g, i) => {
+          const dLeft = daysDiff(g.expiryDate);
+          const isExpired = dLeft < 0, isUrgent = !isExpired && dLeft <= 60, isWarning = !isExpired && dLeft <= 180 && dLeft > 60;
+          const border = isExpired?"#e5e7eb":isUrgent?"#fca5a5":isWarning?"#fde047":"#86efac";
+          const bg = isExpired?"#f9fafb":isUrgent?"#fef2f2":isWarning?"#fffbeb":"#f0fdf4";
+          const tc = isExpired?"#9ca3af":isUrgent?"#dc2626":isWarning?"#ca8a04":"#16a34a";
+          return (
+            <div key={i} style={{borderRadius:"12px",border:`2px solid ${border}`,background:bg,padding:"16px",marginBottom:"12px",opacity:isExpired?0.6:1}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <p style={{fontSize:"12px",color:"#6b7280",margin:"0 0 2px"}}>付与日：{fmt(g.grantDate)}</p>
+                  <p style={{fontSize:"14px",fontWeight:"bold",color:"#1f2937",margin:0}}>付与日数：{g.days}日</p>
                 </div>
-                {!isExpired && (
-                  <div style={{marginTop:"8px"}}>
-                    <div style={{height:"6px",background:"white",borderRadius:"9999px",overflow:"hidden"}}>
-                      <div style={{height:"100%",borderRadius:"9999px",background:isUrgent?"#f87171":isWarning?"#facc15":"#4ade80",width:`${Math.max(3,Math.min(100,(dLeft/730)*100))}%`}} />
-                    </div>
-                  </div>
-                )}
+                <div style={{textAlign:"right"}}>
+                  <p style={{fontSize:"12px",color:tc,margin:"0 0 2px"}}>消失期限：{fmt(g.expiryDate)}</p>
+                  {isExpired
+                    ? <span style={{fontSize:"12px",background:"#e5e7eb",color:"#6b7280",padding:"2px 8px",borderRadius:"9999px"}}>消失済み</span>
+                    : <p style={{fontSize:"18px",fontWeight:"bold",color:tc,margin:0}}>あと {dLeft} 日 {isUrgent&&"⚠️"}</p>}
+                </div>
               </div>
-            );
-          })}
-        </div>
+              {!isExpired && (
+                <div style={{marginTop:"8px",height:"6px",background:"white",borderRadius:"9999px",overflow:"hidden"}}>
+                  <div style={{height:"100%",borderRadius:"9999px",background:isUrgent?"#f87171":isWarning?"#facc15":"#4ade80",width:`${Math.max(3,Math.min(100,(dLeft/730)*100))}%`}} />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-        <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>📊 有給サマリー</h3>
+        <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>📊 有給サマリー</h3>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px"}}>
           {[["付与合計",`${emp.leaveGrants.reduce((s,g)=>s+g.days,0)}日`,"#1f2937"],["取得済み",`${usedCount}日`,"#f97316"],["残日数",`${remaining}日`,"#2563eb"]].map(([l,v,c])=>(
             <div key={l} style={{background:"#f8fafc",borderRadius:"8px",padding:"12px",textAlign:"center"}}>
@@ -198,7 +197,23 @@ function LeaveDetailPanel({ emp, leaves }) {
   );
 }
 
-// ─── Main App ─────────────────────────────────────────────────────
+// ─── Dept Filter ─────────────────────────────────────────────────
+function DeptFilter({ depts, selected, onChange }) {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
+      <span style={{fontSize:"13px",color:"#64748b",fontWeight:"600"}}>部署：</span>
+      {depts.map(d => (
+        <button key={d} onClick={()=>onChange(d)}
+          style={{padding:"4px 14px",borderRadius:"9999px",fontSize:"12px",fontWeight:"600",cursor:"pointer",border:"none",
+            background:selected===d?"#2563eb":"#e5e7eb",color:selected===d?"white":"#374151"}}>
+          {d}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────
 export default function App() {
   const [employees, setEmployees] = useState(loadEmployees);
   const [authUser, setAuthUser] = useState(null);
@@ -211,88 +226,59 @@ export default function App() {
   const [leaveForm, setLeaveForm] = useState({ date:"", type:"年次有給", reason:"" });
   const [showLeaveForm, setShowLeaveForm] = useState(false);
   const [adminTab, setAdminTab] = useState("employees");
+  const [filterDept, setFilterDept] = useState("すべて");
 
-  // 従業員管理
+  // 従業員管理用
   const [showAddForm, setShowAddForm] = useState(false);
   const [editPwId, setEditPwId] = useState(null);
   const [newPw, setNewPw] = useState("");
   const [newEmp, setNewEmp] = useState({ empNo:"", password:"", name:"", dept:"", annualLeave:10 });
   const [addError, setAddError] = useState("");
-  const [filterDept, setFilterDept] = useState("すべて");
-
-  const allDepts = ["すべて", ...Array.from(new Set(employees.map(e => e.dept)))];
-  const filterEmployees = list => filterDept === "すべて" ? list : list.filter(e => e.dept === filterDept);
-
-  const DeptFilter = () => (
-    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
-      <span style={{fontSize:"13px",color:"#64748b",fontWeight:"600"}}>部署：</span>
-      {allDepts.map(d => (
-        <button key={d} onClick={()=>setFilterDept(d)} style={{padding:"4px 14px",borderRadius:"9999px",fontSize:"12px",fontWeight:"600",cursor:"pointer",border:"none",background:filterDept===d?"#2563eb":"#e5e7eb",color:filterDept===d?"white":"#374151"}}>
-          {d}
-        </button>
-      ))}
-    </div>
-  );
 
   const updateEmployees = newEmps => { setEmployees(newEmps); saveEmployees(newEmps); };
-
-  const handleLogin = (emp, role) => { setAuthUser(emp); setAuthRole(role); setTab("dashboard"); };
+  const handleLogin = (emp, role) => { setAuthUser(emp); setAuthRole(role); setTab("dashboard"); setFilterDept("すべて"); };
   const handleLogout = () => { setAuthUser(null); setAuthRole(null); setClockedIn(false); setClockInTime(null); setShowLeaveForm(false); };
 
   if (!authUser && !authRole) return <LoginScreen employees={employees} onLogin={handleLogin} />;
 
   const btn = active => ({ padding:"8px 16px", borderRadius:"8px", fontWeight:"600", fontSize:"13px", cursor:"pointer", border:"none", background:active?"#2563eb":"white", color:active?"white":"#4b5563" });
 
-  const clockIn = () => { setClockedIn(true); setClockInTime(new Date()); };
-  const clockOut = () => { setClockedIn(false); setClockInTime(null); };
-
   const submitLeave = () => {
     if (!leaveForm.date || !leaveForm.reason) return;
     setLeaves(l => ({ ...l, [authUser.id]: [...(l[authUser.id]||[]), { id:Date.now(), ...leaveForm, status:"申請中" }] }));
     setLeaveForm({ date:"", type:"年次有給", reason:"" }); setShowLeaveForm(false);
   };
-
-  const approveLeave = (empId, leaveId, status) => {
-    setLeaves(l => ({ ...l, [empId]: l[empId].map(lv => lv.id===leaveId ? {...lv,status} : lv) }));
-  };
+  const approveLeave = (empId, leaveId, status) => setLeaves(l => ({ ...l, [empId]: l[empId].map(lv => lv.id===leaveId ? {...lv,status} : lv) }));
 
   const addEmployee = () => {
     setAddError("");
-    if (!newEmp.empNo || !newEmp.password || !newEmp.name || !newEmp.dept) { setAddError("すべての項目を入力してください"); return; }
-    if (employees.find(e => e.empNo === newEmp.empNo)) { setAddError("その従業員番号はすでに使用されています"); return; }
-    const grantDate = new Date().toISOString().slice(0,10);
-    const expiryDate = new Date(new Date().setFullYear(new Date().getFullYear()+2)).toISOString().slice(0,10);
-    const nextDate = new Date(new Date().setFullYear(new Date().getFullYear()+1)).toISOString().slice(0,10);
+    if (!newEmp.empNo||!newEmp.password||!newEmp.name||!newEmp.dept) { setAddError("すべての項目を入力してください"); return; }
+    if (employees.find(e=>e.empNo===newEmp.empNo)) { setAddError("その従業員番号はすでに使用されています"); return; }
+    const gd = new Date().toISOString().slice(0,10);
+    const ex = new Date(new Date().setFullYear(new Date().getFullYear()+2)).toISOString().slice(0,10);
+    const nx = new Date(new Date().setFullYear(new Date().getFullYear()+1)).toISOString().slice(0,10);
     const emp = { id:Date.now(), empNo:newEmp.empNo, password:newEmp.password, name:newEmp.name, dept:newEmp.dept,
-      leaveGrants:[{ grantDate, days:parseInt(newEmp.annualLeave), expiryDate }],
-      pendingGrant:{ grantDate:nextDate, days:parseInt(newEmp.annualLeave) } };
+      leaveGrants:[{ grantDate:gd, days:parseInt(newEmp.annualLeave), expiryDate:ex }],
+      pendingGrant:{ grantDate:nx, days:parseInt(newEmp.annualLeave) } };
     updateEmployees([...employees, emp]);
     setNewEmp({ empNo:"", password:"", name:"", dept:"", annualLeave:10 });
     setShowAddForm(false); setAddError("");
   };
+  const resetPassword = id => { if (!newPw) return; updateEmployees(employees.map(e=>e.id===id?{...e,password:newPw}:e)); setEditPwId(null); setNewPw(""); };
+  const deleteEmployee = id => { if (!window.confirm("この従業員を削除しますか？")) return; updateEmployees(employees.filter(e=>e.id!==id)); };
 
-  const resetPassword = id => {
-    if (!newPw) return;
-    updateEmployees(employees.map(e => e.id===id ? {...e, password:newPw} : e));
-    setEditPwId(null); setNewPw("");
-  };
-
-  const deleteEmployee = id => {
-    if (!window.confirm("この従業員を削除しますか？")) return;
-    updateEmployees(employees.filter(e => e.id!==id));
-  };
-
-  const pendingLeaves = employees.flatMap(emp => (leaves[emp.id]||[]).filter(l=>l.status==="申請中").map(l=>({...l,emp})));
-  const OT_THRESHOLD = 20;
+  const allDepts = ["すべて", ...Array.from(new Set(employees.map(e=>e.dept)))];
+  const filtered = filterDept==="すべて" ? employees : employees.filter(e=>e.dept===filterDept);
+  const pendingLeaves = employees.flatMap(emp=>(leaves[emp.id]||[]).filter(l=>l.status==="申請中").map(l=>({...l,emp})));
+  const OT = 20;
   const empStats = employees.map(emp => {
-    const recs = records[emp.id] || [];
-    const total = recs.reduce((s,r) => s+parseFloat(r.hours), 0);
-    const overtime = Math.max(0, total - recs.length*8);
-    return { emp, recs, total, overtime };
+    const recs = records[emp.id]||[];
+    const total = recs.reduce((s,r)=>s+parseFloat(r.hours),0);
+    return { emp, recs, total, overtime: Math.max(0,total-recs.length*8) };
   });
-  const alertCount = empStats.filter(e => e.overtime >= OT_THRESHOLD).length;
+  const alertCount = empStats.filter(e=>e.overtime>=OT).length;
 
-  const header = (title, sub) => (
+  const Header = ({sub, title}) => (
     <header style={{background:"#1d4ed8",color:"white",padding:"16px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 2px 8px rgba(0,0,0,0.2)"}}>
       <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
         <span style={{fontSize:"24px"}}>🏢</span>
@@ -306,16 +292,16 @@ export default function App() {
     </header>
   );
 
-  // ── 従業員画面 ──
-  if (authRole === "employee" && authUser) {
-    const empRecords = records[authUser.id] || [];
-    const empLeaves = leaves[authUser.id] || [];
+  // ── 従業員画面 ──────────────────────────────────────────────────
+  if (authRole==="employee" && authUser) {
+    const empRecords = records[authUser.id]||[];
+    const empLeaves = leaves[authUser.id]||[];
     const { usedCount, remaining } = calcLeaveStats(authUser, leaves);
-    const totalHours = empRecords.reduce((s,r) => s+parseFloat(r.hours), 0).toFixed(1);
+    const totalHours = empRecords.reduce((s,r)=>s+parseFloat(r.hours),0).toFixed(1);
 
     return (
       <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"sans-serif"}}>
-        {header(`${authUser.empNo}｜${authUser.name}`)}
+        <Header title={`${authUser.empNo}｜${authUser.name}`} />
         <div style={{maxWidth:"700px",margin:"0 auto",padding:"16px"}}>
           <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
             {[["dashboard","ダッシュボード"],["attendance","打刻・履歴"],["leave","有給申請"],["leaveDetail","有給スケジュール"]].map(([key,label])=>(
@@ -340,13 +326,15 @@ export default function App() {
                 </div>
               ))}
               <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-                <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>直近の勤怠</h3>
+                <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>直近の勤怠</h3>
                 <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse"}}>
                   <thead><tr style={{color:"#94a3b8",borderBottom:"1px solid #e5e7eb"}}>{["日付","出勤","退勤","時間"].map(h=><th key={h} style={{textAlign:"left",paddingBottom:"8px",fontWeight:"600"}}>{h}</th>)}</tr></thead>
                   <tbody>{empRecords.slice(0,5).map((r,i)=>(
                     <tr key={i} style={{borderBottom:"1px solid #f1f5f9"}}>
-                      <td style={{padding:"8px 0"}}>{r.date}</td><td style={{padding:"8px 0",color:"#2563eb"}}>{r.clockIn}</td>
-                      <td style={{padding:"8px 0",color:"#ef4444"}}>{r.clockOut}</td><td style={{padding:"8px 0",fontWeight:"600"}}>{r.hours}h</td>
+                      <td style={{padding:"8px 0",color:"#1f2937"}}>{r.date}</td>
+                      <td style={{padding:"8px 0",color:"#2563eb"}}>{r.clockIn}</td>
+                      <td style={{padding:"8px 0",color:"#ef4444"}}>{r.clockOut}</td>
+                      <td style={{padding:"8px 0",fontWeight:"600",color:"#1f2937"}}>{r.hours}h</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -359,21 +347,23 @@ export default function App() {
               <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"24px",marginBottom:"16px",textAlign:"center"}}>
                 <p style={{color:"#94a3b8",fontSize:"13px",marginBottom:"16px"}}>現在時刻: {fmtTime(new Date())}</p>
                 {!clockedIn
-                  ? <button onClick={clockIn} style={{background:"#22c55e",color:"white",border:"none",borderRadius:"16px",padding:"16px 40px",fontSize:"17px",fontWeight:"bold",cursor:"pointer"}}>🟢 出勤</button>
+                  ? <button onClick={()=>{setClockedIn(true);setClockInTime(new Date());}} style={{background:"#22c55e",color:"white",border:"none",borderRadius:"16px",padding:"16px 40px",fontSize:"17px",fontWeight:"bold",cursor:"pointer"}}>🟢 出勤</button>
                   : <div>
                       <p style={{color:"#16a34a",fontWeight:"600",marginBottom:"12px"}}>出勤中 🟢（{fmtTime(clockInTime)}〜）</p>
-                      <button onClick={clockOut} style={{background:"#ef4444",color:"white",border:"none",borderRadius:"16px",padding:"16px 40px",fontSize:"17px",fontWeight:"bold",cursor:"pointer"}}>🔴 退勤</button>
+                      <button onClick={()=>{setClockedIn(false);setClockInTime(null);}} style={{background:"#ef4444",color:"white",border:"none",borderRadius:"16px",padding:"16px 40px",fontSize:"17px",fontWeight:"bold",cursor:"pointer"}}>🔴 退勤</button>
                     </div>}
               </div>
               <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-                <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>勤怠履歴</h3>
+                <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>勤怠履歴</h3>
                 <div style={{overflowY:"auto",maxHeight:"300px"}}>
                   <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse"}}>
                     <thead><tr style={{color:"#94a3b8",borderBottom:"1px solid #e5e7eb"}}>{["日付","出勤","退勤","勤務時間"].map(h=><th key={h} style={{textAlign:"left",paddingBottom:"8px",fontWeight:"600"}}>{h}</th>)}</tr></thead>
                     <tbody>{empRecords.map((r,i)=>(
                       <tr key={i} style={{borderBottom:"1px solid #f1f5f9"}}>
-                        <td style={{padding:"8px 0"}}>{r.date}</td><td style={{padding:"8px 0",color:"#2563eb"}}>{r.clockIn}</td>
-                        <td style={{padding:"8px 0",color:"#ef4444"}}>{r.clockOut}</td><td style={{padding:"8px 0",fontWeight:"600"}}>{r.hours}h</td>
+                        <td style={{padding:"8px 0",color:"#1f2937"}}>{r.date}</td>
+                        <td style={{padding:"8px 0",color:"#2563eb"}}>{r.clockIn}</td>
+                        <td style={{padding:"8px 0",color:"#ef4444"}}>{r.clockOut}</td>
+                        <td style={{padding:"8px 0",fontWeight:"600",color:"#1f2937"}}>{r.hours}h</td>
                       </tr>
                     ))}</tbody>
                   </table>
@@ -395,20 +385,21 @@ export default function App() {
               {!showLeaveForm
                 ? <button onClick={()=>setShowLeaveForm(true)} style={{...btn(true),width:"100%",marginBottom:"16px",padding:"12px"}}>＋ 有給申請</button>
                 : <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px",marginBottom:"16px"}}>
-                    <h3 style={{fontWeight:"600",marginBottom:"12px",marginTop:0}}>有給申請</h3>
+                    <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>有給申請</h3>
                     <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-                      {[["取得日","date","date"],["理由","reason","text"]].map(([label,key,type])=>(
-                        <div key={key}>
-                          <label style={{fontSize:"13px",color:"#475569",display:"block",marginBottom:"4px"}}>{label}</label>
-                          <input type={type} placeholder={key==="reason"?"例：通院、私用など":""} value={leaveForm[key]} onChange={e=>setLeaveForm(f=>({...f,[key]:e.target.value}))}
-                            style={{width:"100%",border:"1px solid #e2e8f0",borderRadius:"6px",padding:"8px 12px",fontSize:"13px",boxSizing:"border-box"}} />
-                        </div>
-                      ))}
+                      <div>
+                        <label style={{fontSize:"13px",color:"#475569",display:"block",marginBottom:"4px"}}>取得日</label>
+                        <input type="date" value={leaveForm.date} onChange={e=>setLeaveForm(f=>({...f,date:e.target.value}))} style={{width:"100%",border:"1px solid #e2e8f0",borderRadius:"6px",padding:"8px 12px",fontSize:"13px",boxSizing:"border-box"}} />
+                      </div>
                       <div>
                         <label style={{fontSize:"13px",color:"#475569",display:"block",marginBottom:"4px"}}>種別</label>
                         <select value={leaveForm.type} onChange={e=>setLeaveForm(f=>({...f,type:e.target.value}))} style={{width:"100%",border:"1px solid #e2e8f0",borderRadius:"6px",padding:"8px 12px",fontSize:"13px"}}>
                           <option>年次有給</option><option>特別休暇</option><option>慶弔休暇</option>
                         </select>
+                      </div>
+                      <div>
+                        <label style={{fontSize:"13px",color:"#475569",display:"block",marginBottom:"4px"}}>理由</label>
+                        <input type="text" placeholder="例：通院、私用など" value={leaveForm.reason} onChange={e=>setLeaveForm(f=>({...f,reason:e.target.value}))} style={{width:"100%",border:"1px solid #e2e8f0",borderRadius:"6px",padding:"8px 12px",fontSize:"13px",boxSizing:"border-box"}} />
                       </div>
                       <div style={{display:"flex",gap:"8px"}}>
                         <button onClick={submitLeave} style={{...btn(true),padding:"10px 20px"}}>申請する</button>
@@ -417,12 +408,12 @@ export default function App() {
                     </div>
                   </div>}
               <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-                <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>申請履歴</h3>
+                <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>申請履歴</h3>
                 {empLeaves.length===0 ? <p style={{color:"#94a3b8",fontSize:"13px"}}>申請履歴はありません</p>
                   : empLeaves.map(lv=>(
                     <div key={lv.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",border:"1px solid #e5e7eb",borderRadius:"8px",padding:"10px 14px",fontSize:"13px",marginBottom:"8px"}}>
                       <div>
-                        <span style={{fontWeight:"600"}}>{lv.date}</span>
+                        <span style={{fontWeight:"600",color:"#1f2937"}}>{lv.date}</span>
                         <span style={{color:"#6b7280",marginLeft:"8px"}}>{lv.type}</span>
                         <span style={{color:"#9ca3af",marginLeft:"8px",fontSize:"12px"}}>{lv.reason}</span>
                       </div>
@@ -441,16 +432,19 @@ export default function App() {
     );
   }
 
-  // ── 管理者画面 ──
+  // ── 管理者画面 ──────────────────────────────────────────────────
   return (
     <div style={{minHeight:"100vh",background:"#f1f5f9",fontFamily:"sans-serif"}}>
-      {header(null,"管理者")}
+      <Header sub="管理者" />
       <div style={{maxWidth:"960px",margin:"0 auto",padding:"16px"}}>
         <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
           {[["employees","従業員管理"],["leaves","有給申請管理"],["report","勤務レポート"],["leaveSchedule","有給スケジュール"]].map(([key,label])=>(
             <button key={key} onClick={()=>setAdminTab(key)} style={btn(adminTab===key)}>{label}</button>
           ))}
         </div>
+
+        {/* 部署フィルター（全タブ共通） */}
+        <DeptFilter depts={allDepts} selected={filterDept} onChange={setFilterDept} />
 
         {/* 従業員管理 */}
         {adminTab==="employees" && (
@@ -460,7 +454,7 @@ export default function App() {
             </button>
             {showAddForm && (
               <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"20px",marginBottom:"16px"}}>
-                <h3 style={{fontWeight:"600",marginTop:0,marginBottom:"16px"}}>新しい従業員を追加</h3>
+                <h3 style={{fontWeight:"600",color:"#1f2937",marginTop:0,marginBottom:"16px"}}>新しい従業員を追加</h3>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}}>
                   {[["従業員番号","empNo","text","例：E006"],["パスワード（初期）","password","password","初期パスワード"],["氏名","name","text","例：山本 一郎"],["部署","dept","text","例：営業部"]].map(([label,key,type,ph])=>(
                     <div key={key}>
@@ -481,17 +475,17 @@ export default function App() {
             )}
             <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",overflow:"auto"}}>
               <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse",minWidth:"600px"}}>
-                <thead style={{background:"#f8fafc"}}><tr>{["従業員番号","氏名","部署","有給残日数","パスワード変更","削除"].map(h=><th key={h} style={{textAlign:"left",padding:"12px 16px",color:"#64748b",fontWeight:"600"}}>{h}</th>)}</tr></thead>
+                <thead><tr>{["従業員番号","氏名","部署","有給残日数","パスワード変更","削除"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
                 <tbody>
-                  {employees.map(emp=>{
+                  {filtered.map(emp=>{
                     const {remaining}=calcLeaveStats(emp,leaves);
                     return (
                       <tr key={emp.id} style={{borderTop:"1px solid #f1f5f9"}}>
-                        <td style={{padding:"12px 16px",color:"#94a3b8",fontFamily:"monospace"}}>{emp.empNo}</td>
-                        <td style={{padding:"12px 16px",fontWeight:"600"}}>{emp.name}</td>
-                        <td style={{padding:"12px 16px",color:"#6b7280"}}>{emp.dept}</td>
-                        <td style={{padding:"12px 16px",fontWeight:"bold",color:"#2563eb"}}>{remaining}日</td>
-                        <td style={{padding:"12px 16px"}}>
+                        <td style={cell({color:"#94a3b8",fontFamily:"monospace"})}>{emp.empNo}</td>
+                        <td style={cell({fontWeight:"700"})}>{emp.name}</td>
+                        <td style={cell({color:"#6b7280"})}>{emp.dept}</td>
+                        <td style={cell({fontWeight:"bold",color:"#2563eb"})}>{remaining}日</td>
+                        <td style={cell()}>
                           {editPwId===emp.id
                             ? <div style={{display:"flex",gap:"6px",alignItems:"center"}}>
                                 <input type="password" placeholder="新しいパスワード" value={newPw} onChange={e=>setNewPw(e.target.value)}
@@ -501,7 +495,7 @@ export default function App() {
                               </div>
                             : <button onClick={()=>setEditPwId(emp.id)} style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:"6px",padding:"4px 12px",fontSize:"12px",cursor:"pointer"}}>🔑 変更</button>}
                         </td>
-                        <td style={{padding:"12px 16px"}}>
+                        <td style={cell()}>
                           <button onClick={()=>deleteEmployee(emp.id)} style={{background:"#fee2e2",color:"#dc2626",border:"none",borderRadius:"6px",padding:"4px 12px",fontSize:"12px",cursor:"pointer"}}>🗑️ 削除</button>
                         </td>
                       </tr>
@@ -516,23 +510,23 @@ export default function App() {
         {/* 有給申請管理 */}
         {adminTab==="leaves" && (
           <div>
-            {pendingLeaves.length>0 && (
+            {pendingLeaves.filter(l=>filterDept==="すべて"||l.emp.dept===filterDept).length>0 && (
               <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"13px",color:"#92400e"}}>
-                📋 承認待ちの申請が <strong>{pendingLeaves.length}件</strong> あります
+                📋 承認待ちの申請が <strong>{pendingLeaves.filter(l=>filterDept==="すべて"||l.emp.dept===filterDept).length}件</strong> あります
               </div>
             )}
             <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",overflow:"auto"}}>
               <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse",minWidth:"600px"}}>
-                <thead style={{background:"#f8fafc"}}><tr>{["従業員","部署","日付","種別","理由","操作"].map(h=><th key={h} style={{textAlign:"left",padding:"12px 16px",color:"#64748b",fontWeight:"600"}}>{h}</th>)}</tr></thead>
+                <thead><tr>{["従業員","部署","日付","種別","理由","操作"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
                 <tbody>
-                  {employees.flatMap(emp=>(leaves[emp.id]||[]).map(lv=>(
+                  {filtered.flatMap(emp=>(leaves[emp.id]||[]).map(lv=>(
                     <tr key={lv.id} style={{borderTop:"1px solid #f1f5f9"}}>
-                      <td style={{padding:"12px 16px",fontWeight:"600"}}>{emp.name}</td>
-                      <td style={{padding:"12px 16px",color:"#6b7280"}}>{emp.dept}</td>
-                      <td style={{padding:"12px 16px"}}>{lv.date}</td>
-                      <td style={{padding:"12px 16px"}}>{lv.type}</td>
-                      <td style={{padding:"12px 16px",color:"#6b7280"}}>{lv.reason}</td>
-                      <td style={{padding:"12px 16px"}}>
+                      <td style={cell({fontWeight:"700"})}>{emp.name}</td>
+                      <td style={cell({color:"#6b7280"})}>{emp.dept}</td>
+                      <td style={cell()}>{lv.date}</td>
+                      <td style={cell()}>{lv.type}</td>
+                      <td style={cell({color:"#6b7280"})}>{lv.reason}</td>
+                      <td style={cell()}>
                         {lv.status==="申請中"
                           ? <div style={{display:"flex",gap:"6px"}}>
                               <button onClick={()=>approveLeave(emp.id,lv.id,"承認済")} style={{background:"#22c55e",color:"white",border:"none",borderRadius:"6px",padding:"4px 10px",fontSize:"12px",cursor:"pointer"}}>承認</button>
@@ -552,7 +546,11 @@ export default function App() {
         {adminTab==="report" && (
           <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px"}}>
-              {[["総従業員数",`${employees.length}名`,"👥",false],["承認待ち申請",`${pendingLeaves.length}件`,"📋",false],["残業アラート",`${alertCount}名`,"🚨",alertCount>0]].map(([l,v,icon,alert])=>(
+              {[
+                ["総従業員数",`${filtered.length}名`,"👥",false],
+                ["承認待ち申請",`${pendingLeaves.filter(l=>filterDept==="すべて"||l.emp.dept===filterDept).length}件`,"📋",false],
+                ["残業アラート",`${empStats.filter(e=>(filterDept==="すべて"||e.emp.dept===filterDept)&&e.overtime>=OT).length}名`,"🚨",alertCount>0],
+              ].map(([l,v,icon,alert])=>(
                 <div key={l} style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px",textAlign:"center",border:alert?"2px solid #fca5a5":"2px solid transparent"}}>
                   <div style={{fontSize:"24px",marginBottom:"4px"}}>{icon}</div>
                   <div style={{fontSize:"22px",fontWeight:"bold",color:alert?"#dc2626":"#2563eb"}}>{v}</div>
@@ -560,22 +558,22 @@ export default function App() {
                 </div>
               ))}
             </div>
-            {alertCount>0 && (
+            {empStats.filter(e=>(filterDept==="すべて"||e.emp.dept===filterDept)&&e.overtime>=OT).length>0 && (
               <div style={{background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:"12px",padding:"16px"}}>
-                <h3 style={{fontWeight:"600",color:"#b91c1c",marginBottom:"12px",marginTop:0}}>🚨 残業アラート（基準：{OT_THRESHOLD}時間超）</h3>
-                {empStats.filter(e=>e.overtime>=OT_THRESHOLD).sort((a,b)=>b.overtime-a.overtime).map(({emp,recs,total,overtime})=>{
-                  const severe=overtime>=OT_THRESHOLD*2;
+                <h3 style={{fontWeight:"600",color:"#b91c1c",marginBottom:"12px",marginTop:0}}>🚨 残業アラート（基準：{OT}時間超）</h3>
+                {empStats.filter(e=>(filterDept==="すべて"||e.emp.dept===filterDept)&&e.overtime>=OT).sort((a,b)=>b.overtime-a.overtime).map(({emp,recs,total,overtime})=>{
+                  const severe=overtime>=OT*2;
                   return (
                     <div key={emp.id} style={{borderRadius:"10px",border:`1px solid ${severe?"#f87171":"#fca5a5"}`,background:severe?"#fee2e2":"white",padding:"14px 16px",marginBottom:"10px"}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
-                        <div><span style={{fontWeight:"600"}}>{emp.name}</span><span style={{color:"#9ca3af",fontSize:"12px",marginLeft:"8px"}}>{emp.dept}</span></div>
+                        <div><span style={{fontWeight:"700",color:"#1f2937"}}>{emp.name}</span><span style={{color:"#9ca3af",fontSize:"12px",marginLeft:"8px"}}>{emp.dept}</span></div>
                         <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
                           <span style={{fontSize:"17px",fontWeight:"bold",color:severe?"#b91c1c":"#ef4444"}}>+{overtime.toFixed(1)}h超過</span>
                           {severe && <span style={{background:"#dc2626",color:"white",fontSize:"11px",padding:"2px 8px",borderRadius:"9999px"}}>⚠️ 要対応</span>}
                         </div>
                       </div>
                       <div style={{height:"6px",background:"#fecaca",borderRadius:"9999px",overflow:"hidden"}}>
-                        <div style={{height:"100%",borderRadius:"9999px",background:severe?"#dc2626":"#f87171",width:`${Math.min(100,(overtime/OT_THRESHOLD)*100)}%`}} />
+                        <div style={{height:"100%",borderRadius:"9999px",background:severe?"#dc2626":"#f87171",width:`${Math.min(100,(overtime/OT)*100)}%`}} />
                       </div>
                       <p style={{fontSize:"12px",color:"#9ca3af",margin:"6px 0 0"}}>総勤務時間 {total.toFixed(1)}h ／ 出勤 {recs.length}日</p>
                     </div>
@@ -584,17 +582,17 @@ export default function App() {
               </div>
             )}
             <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px",overflow:"auto"}}>
-              <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>従業員別 勤務時間サマリー</h3>
+              <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>従業員別 勤務時間サマリー</h3>
               <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse",minWidth:"500px"}}>
-                <thead><tr style={{color:"#94a3b8",borderBottom:"1px solid #e5e7eb"}}>{["氏名","出勤日数","総勤務時間","平均/日","残業時間","状態"].map(h=><th key={h} style={{textAlign:"left",paddingBottom:"8px",fontWeight:"600"}}>{h}</th>)}</tr></thead>
+                <thead><tr style={{borderBottom:"1px solid #e5e7eb"}}>{["氏名","出勤日数","総勤務時間","平均/日","残業時間","状態"].map(h=><th key={h} style={{...th,background:"transparent",padding:"0 0 8px"}}>{h}</th>)}</tr></thead>
                 <tbody>
-                  {empStats.map(({emp,recs,total,overtime})=>{
-                    const isAlert=overtime>=OT_THRESHOLD, isSevere=overtime>=OT_THRESHOLD*2;
+                  {empStats.filter(e=>filterDept==="すべて"||e.emp.dept===filterDept).map(({emp,recs,total,overtime})=>{
+                    const isAlert=overtime>=OT, isSevere=overtime>=OT*2;
                     return (
                       <tr key={emp.id} style={{borderBottom:"1px solid #f1f5f9",background:isSevere?"#fef2f2":isAlert?"#fff7ed":"white"}}>
-                        <td style={{padding:"10px 0",fontWeight:"600"}}>{emp.name}</td>
-                        <td style={{padding:"10px 0"}}>{recs.length}日</td>
-                        <td style={{padding:"10px 0"}}>{total.toFixed(1)}h</td>
+                        <td style={{padding:"10px 0",fontWeight:"700",color:"#1f2937"}}>{emp.name}</td>
+                        <td style={{padding:"10px 0",color:"#1f2937"}}>{recs.length}日</td>
+                        <td style={{padding:"10px 0",color:"#1f2937"}}>{total.toFixed(1)}h</td>
                         <td style={{padding:"10px 0",color:"#2563eb"}}>{recs.length?(total/recs.length).toFixed(1):"—"}h</td>
                         <td style={{padding:"10px 0",fontWeight:"bold",color:isSevere?"#dc2626":isAlert?"#ea580c":"#94a3b8"}}>{overtime>0?`+${overtime.toFixed(1)}h`:"—"}</td>
                         <td style={{padding:"10px 0"}}>
@@ -615,27 +613,30 @@ export default function App() {
         {adminTab==="leaveSchedule" && (
           <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
             <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-              <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>⚠️ 有給消失アラート（60日以内）</h3>
-              {employees.flatMap(emp=>emp.leaveGrants.filter(g=>daysDiff(g.expiryDate)>=0&&daysDiff(g.expiryDate)<=60).map((g,i)=>(
-                <div key={`${emp.id}-${i}`} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:"8px",padding:"12px 16px",marginBottom:"8px"}}>
-                  <div>
-                    <p style={{fontWeight:"600",color:"#1f2937",margin:"0 0 2px"}}>{emp.name} <span style={{color:"#9ca3af",fontSize:"12px"}}>{emp.dept}</span></p>
-                    <p style={{fontSize:"12px",color:"#dc2626",margin:0}}>消失日：{fmt(g.expiryDate)}　消失日数：{g.days}日</p>
+              <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>⚠️ 有給消失アラート（60日以内）</h3>
+              {(() => {
+                const items = filtered.flatMap(emp=>emp.leaveGrants.filter(g=>daysDiff(g.expiryDate)>=0&&daysDiff(g.expiryDate)<=60).map((g,i)=>(
+                  <div key={`${emp.id}-${i}`} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:"8px",padding:"12px 16px",marginBottom:"8px"}}>
+                    <div>
+                      <p style={{fontWeight:"700",color:"#1f2937",margin:"0 0 2px"}}>{emp.name} <span style={{color:"#9ca3af",fontSize:"12px",fontWeight:"400"}}>{emp.dept}</span></p>
+                      <p style={{fontSize:"12px",color:"#dc2626",margin:0}}>消失日：{fmt(g.expiryDate)}　消失日数：{g.days}日</p>
+                    </div>
+                    <span style={{fontWeight:"bold",color:"#dc2626",fontSize:"17px"}}>あと {daysDiff(g.expiryDate)} 日</span>
                   </div>
-                  <span style={{fontWeight:"bold",color:"#dc2626",fontSize:"17px"}}>あと {daysDiff(g.expiryDate)} 日</span>
-                </div>
-              ))).length===0 && <p style={{color:"#94a3b8",fontSize:"13px"}}>60日以内に消失する有給はありません</p>}
+                )));
+                return items.length ? items : <p style={{color:"#94a3b8",fontSize:"13px"}}>60日以内に消失する有給はありません</p>;
+              })()}
             </div>
             <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px",overflow:"auto"}}>
-              <h3 style={{fontWeight:"600",color:"#374151",marginBottom:"12px",marginTop:0}}>🎁 今後の有給付与スケジュール</h3>
+              <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>🎁 今後の有給付与スケジュール</h3>
               <table style={{width:"100%",fontSize:"13px",borderCollapse:"collapse",minWidth:"400px"}}>
-                <thead><tr style={{color:"#94a3b8",borderBottom:"1px solid #e5e7eb"}}>{["氏名","部署","付与予定日","付与日数","あと"].map(h=><th key={h} style={{textAlign:"left",paddingBottom:"8px",fontWeight:"600"}}>{h}</th>)}</tr></thead>
+                <thead><tr style={{borderBottom:"1px solid #e5e7eb"}}>{["氏名","部署","付与予定日","付与日数","あと"].map(h=><th key={h} style={{...th,background:"transparent",padding:"0 0 8px"}}>{h}</th>)}</tr></thead>
                 <tbody>
-                  {[...employees].sort((a,b)=>daysDiff(a.pendingGrant.grantDate)-daysDiff(b.pendingGrant.grantDate)).map(emp=>(
+                  {[...filtered].sort((a,b)=>daysDiff(a.pendingGrant.grantDate)-daysDiff(b.pendingGrant.grantDate)).map(emp=>(
                     <tr key={emp.id} style={{borderBottom:"1px solid #f1f5f9"}}>
-                      <td style={{padding:"10px 0",fontWeight:"600"}}>{emp.name}</td>
+                      <td style={{padding:"10px 0",fontWeight:"700",color:"#1f2937"}}>{emp.name}</td>
                       <td style={{padding:"10px 0",color:"#6b7280"}}>{emp.dept}</td>
-                      <td style={{padding:"10px 0"}}>{fmt(emp.pendingGrant.grantDate)}</td>
+                      <td style={{padding:"10px 0",color:"#1f2937"}}>{fmt(emp.pendingGrant.grantDate)}</td>
                       <td style={{padding:"10px 0",fontWeight:"bold",color:"#2563eb"}}>{emp.pendingGrant.days}日</td>
                       <td style={{padding:"10px 0",color:"#6b7280"}}>{daysDiff(emp.pendingGrant.grantDate)}日後</td>
                     </tr>
