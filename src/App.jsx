@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReportCharts from "./ReportCharts";
 
 const DEFAULT_EMPLOYEES = [
   { id: 1, empNo: "E001", password: "pass001", name: "田中 太郎", dept: "営業部",
@@ -545,6 +546,7 @@ export default function App() {
         {/* 勤務レポート */}
         {adminTab==="report" && (
           <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
+            <ReportCharts />
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px"}}>
               {[
                 ["総従業員数",`${filtered.length}名`,"👥",false],
@@ -650,3 +652,4 @@ export default function App() {
     </div>
   );
 }
+
