@@ -540,30 +540,102 @@ export default function App() {
         )}
 
         {/* ② シフト管理 */}
-        {adminTab==="shifts"&&(
-          <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-            {filtered.map(emp=>(
-              <div key={emp.id} style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
-                  <div><span style={{fontWeight:"700",color:"#1f2937",fontSize:"14px"}}>{emp.name}</span><span style={{color:"#94a3b8",fontSize:"12px",marginLeft:"8px"}}>{emp.dept}</span></div>
-                  <button onClick={()=>setEditShiftId(editShiftId===emp.id?null:emp.id)} style={{...btn(editShiftId===emp.id),padding:"5px 14px",fontSize:"12px"}}>{editShiftId===emp.id?"✓ 保存":"✏️ 編集"}</button>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}}>
-                  {DAYS.map(day=>{
-                    const val=(shifts[emp.id]||{})[day]||"", isWeekend=day==="土"||day==="日";
-                    return <div key={day} style={{textAlign:"center",background:isWeekend?"#f8fafc":"#eff6ff",borderRadius:"8px",padding:"8px 4px"}}>
-                      <p style={{fontSize:"12px",fontWeight:"700",color:isWeekend?"#94a3b8":"#1d4ed8",margin:"0 0 4px"}}>{day}</p>
-                      {editShiftId===emp.id
-                        ?<input type="text" value={val} onChange={e=>saveShift(emp.id,day,e.target.value)} placeholder="09:00-18:00" style={{width:"100%",border:"1px solid #e2e8f0",borderRadius:"4px",padding:"3px 4px",fontSize:"10px",textAlign:"center",boxSizing:"border-box"}}/>
-                        :val?<p style={{fontSize:"11px",color:"#1f2937",margin:0,fontWeight:"600"}}>{val}</p>:<p style={{fontSize:"11px",color:"#d1d5db",margin:0}}>休み</p>}
-                    </div>;
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* ② シフト管理 */}
+        {adminTab==="shifts"&&(()=>{
+          const hasShift = val => val && val.trim() !== "";
+          const countByDay = DAYS.map(day=>filtered.filter(emp=>hasShift((shifts[emp.id]||{})[day])).length);
 
+          return (
+            <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
+              {/* 凡例 */}
+              <div style={{display:"flex",gap:"16px",alignItems:"center",flexWrap:"wrap"}}>
+                <span style={{fontSize:"13px",color:"#64748b",fontWeight:"600"}}>凡例：</span>
+                <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"16px",height:"16px",borderRadius:"4px",background:"#dbeafe",display:"inline-block",border:"1px solid #93c5fd"}}></span><span style={{fontSize:"12px",color:"#374151"}}>出勤</span></div>
+                <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"16px",height:"16px",borderRadius:"4px",background:"#fef9c3",display:"inline-block",border:"1px solid #fde047"}}></span><span style={{fontSize:"12px",color:"#374151"}}>土曜</span></div>
+                <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"16px",height:"16px",borderRadius:"4px",background:"#fee2e2",display:"inline-block",border:"1px solid #fca5a5"}}></span><span style={{fontSize:"12px",color:"#374151"}}>日曜</span></div>
+                <div style={{display:"flex",alignItems:"center",gap:"6px"}}><span style={{width:"16px",height:"16px",borderRadius:"4px",background:"#f1f5f9",display:"inline-block",border:"1px solid #e2e8f0"}}></span><span style={{fontSize:"12px",color:"#374151"}}>休み</span></div>
+              </div>
+
+              {/* シフト表 */}
+              <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",overflow:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",minWidth:"600px",fontSize:"13px"}}>
+                  <thead>
+                    <tr style={{background:"#1d4ed8"}}>
+                      <th style={{padding:"12px 16px",textAlign:"left",color:"white",fontWeight:"700",width:"140px"}}>氏名 / 部署</th>
+                      {DAYS.map(day=>{
+                        const isSat=day==="土", isSun=day==="日";
+                        return <th key={day} style={{padding:"12px 8px",textAlign:"center",color:isSun?"#fca5a5":isSat?"#fde047":"white",fontWeight:"700",minWidth:"90px"}}>{day}</th>;
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((emp,ei)=>(
+                      <tr key={emp.id} style={{background:ei%2===0?"white":"#f8fafc",borderBottom:"1px solid #e5e7eb"}}>
+                        {/* 氏名列 */}
+                        <td style={{padding:"10px 16px",borderRight:"2px solid #e5e7eb"}}>
+                          <p style={{fontWeight:"700",color:"#1f2937",margin:"0 0 2px",fontSize:"13px"}}>{emp.name}</p>
+                          <p style={{fontSize:"11px",color:"#94a3b8",margin:0}}>{emp.dept}</p>
+                        </td>
+                        {/* 曜日列 */}
+                        {DAYS.map(day=>{
+                          const val=(shifts[emp.id]||{})[day]||"";
+                          const has=hasShift(val), isSat=day==="土", isSun=day==="日";
+                          const bg=isSun?"#fef2f2":isSat?"#fffbeb":has?"#eff6ff":"#f8fafc";
+                          const border=isSun?"1px solid #fecaca":isSat?"1px solid #fef08a":has?"1px solid #bfdbfe":"1px solid #e2e8f0";
+                          const parts=val.split("-");
+                          return (
+                            <td key={day} style={{padding:"6px",textAlign:"center"}}>
+                              {editShiftId===emp.id
+                                ? <input type="text" value={val} onChange={e=>saveShift(emp.id,day,e.target.value)} placeholder="09:00-18:00"
+                                    style={{width:"100%",border:"1px solid #93c5fd",borderRadius:"6px",padding:"5px 4px",fontSize:"11px",textAlign:"center",boxSizing:"border-box",background:"#eff6ff"}}/>
+                                : <div style={{background:bg,border,borderRadius:"8px",padding:"6px 4px",minHeight:"44px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                                    {has
+                                      ? <><p style={{fontSize:"11px",fontWeight:"700",color:"#1e40af",margin:"0 0 1px"}}>{parts[0]||""}</p>
+                                          <p style={{fontSize:"10px",color:"#64748b",margin:0}}>〜 {parts[1]||""}</p></>
+                                      : <p style={{fontSize:"11px",color:"#d1d5db",margin:0}}>—</p>}
+                                  </div>}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+
+                    {/* 集計行 */}
+                    <tr style={{background:"#1e3a8a",borderTop:"2px solid #1d4ed8"}}>
+                      <td style={{padding:"10px 16px",borderRight:"2px solid #3b82f6"}}>
+                        <p style={{fontWeight:"700",color:"white",margin:0,fontSize:"13px"}}>出勤人数</p>
+                      </td>
+                      {countByDay.map((count,i)=>(
+                        <td key={i} style={{padding:"6px",textAlign:"center"}}>
+                          <div style={{background:count>0?"#2563eb":"#374151",borderRadius:"8px",padding:"6px 4px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"44px"}}>
+                            <p style={{fontSize:"18px",fontWeight:"bold",color:"white",margin:"0 0 1px"}}>{count}</p>
+                            <p style={{fontSize:"10px",color:"#93c5fd",margin:0}}>名</p>
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 編集ボタン一覧 */}
+              <div style={{background:"white",borderRadius:"12px",boxShadow:"0 1px 4px rgba(0,0,0,0.1)",padding:"16px"}}>
+                <h3 style={{fontWeight:"600",color:"#1f2937",marginBottom:"12px",marginTop:0}}>✏️ シフト編集</h3>
+                <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+                  {filtered.map(emp=>(
+                    <button key={emp.id} onClick={()=>setEditShiftId(editShiftId===emp.id?null:emp.id)}
+                      style={{padding:"6px 14px",borderRadius:"8px",fontSize:"12px",fontWeight:"600",cursor:"pointer",border:"none",
+                        background:editShiftId===emp.id?"#2563eb":"#f1f5f9",color:editShiftId===emp.id?"white":"#374151"}}>
+                      {editShiftId===emp.id?"✓ 完了":"✏️ "+emp.name}
+                    </button>
+                  ))}
+                </div>
+                {editShiftId&&<p style={{fontSize:"12px",color:"#94a3b8",marginTop:"8px",marginBottom:0}}>※ 表のセルに直接入力してください（例：09:00-18:00）。空白で休みになります。</p>}
+              </div>
+            </div>
+          );
+        })()}
+       
         {/* 有給申請管理 */}
         {adminTab==="leaves"&&(
           <div>
